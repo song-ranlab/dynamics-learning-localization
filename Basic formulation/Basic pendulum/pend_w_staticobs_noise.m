@@ -1,5 +1,4 @@
 clc
-
 clear all
 hold off
 
@@ -31,6 +30,7 @@ dt = 0.01;                  % Time step
 tf = 0.5*N*(2*pi*sqrt(l/g));% length of simulation, multiple of half period
 tf = round(tf);             %final time of simulation, rounded for ease of indexing
 n = tf/dt;                  %number of iterations
+
 
 %observer Y=[x1,y1]
     Y=zeros(2,n); % initialize observer
@@ -129,9 +129,37 @@ del_y_sensed = range_sensed.*sin(heading_sensed);
 del_x_sensed = range_sensed.*cos(heading_sensed);
 
 %% Fit points
-p = polyfit(del_x_sensed,del_y_sensed,4);
+p = polyfit(del_x_sensed,del_y_sensed,5);
 xspace = del_x_sensed(1,n):dt:del_x_sensed(1,1);
 Polycurve = polyval(p,xspace);
+
+pX = polyfit(T,del_x_sensed,5);
+PolyX = polyval(pX,T);
+
+pY = polyfit(T,del_y_sensed,5);
+PolyY = polyval(pY,T);
+
+%% Velocity and Acceleraiton profiles
+for jj = 1:tf/dt-1
+Yvel(jj) = (PolyY(jj+1) - PolyY(jj))/dt;
+end
+
+for kk = 1:tf/dt-1
+Xvel(kk) = (PolyX(kk+1) - PolyX(kk))/dt;
+end
+
+Vel = sqrt(Yvel.^2 + Xvel.^2);
+
+for mm = 1:tf/dt-2
+Yacel(mm) = (Yvel(mm+1) - Yvel(mm))/dt;
+end
+
+for nn = 1:tf/dt-2
+Xacel(nn) = (Xvel(nn+1) - Xvel(nn))/dt;
+end
+
+Acel = sqrt(Yacel.^2 + Xacel.^2);
+
 
 %% PLOTs
 figure(3)
@@ -184,7 +212,7 @@ xlabel('time')
 ylabel('radians')
 
 nexttile
-plot (T,del_x_sensed, 'b', T,del_y_sensed, 'g', 'Linewidth', 1)
+plot (T,del_x_sensed, 'b', T,del_y_sensed, 'g', T, PolyX, 'r', T, PolyY, 'K', 'Linewidth', 1)
 legend('x delta','y delta')
 title('Reconstructed Component Measurements')
 xlabel('time')
@@ -199,3 +227,21 @@ legend('Relative motion of X')
 title('Reconstructed Relative Motion of X viewed from Y')
 xlabel('x')
 ylabel('y')
+
+figure(5)
+clf
+
+plot (T(2:n), Yvel,'r', T(2:n), Xvel, 'b', 'Linewidth', 1)
+legend('Y Velocity', 'Xvelocity')
+title('Velocity Profiles')
+xlabel('time')
+ylabel('Velocity')
+
+figure(6)
+clf
+
+plot (T(3:n), Yacel,'r', T(3:n), Xacel, 'b', T(3:n), Acel, 'g',  'Linewidth', 1)
+legend('Y Acceleration', 'X Acceleration', 'Magnitude')
+title('Acceleration Profiles')
+xlabel('time')
+ylabel('Acceleration')

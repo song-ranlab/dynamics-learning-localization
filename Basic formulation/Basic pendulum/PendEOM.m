@@ -21,12 +21,16 @@ end
 traj(:,3) = l*sin(traj(:,2));
 traj(:,4) = -l*cos(traj(:,2));
 
-plot(traj(:,1),traj(:,2),'o')
+figure(1)
+clf
+plot(traj(:,1),traj(:,2))
 legend('Pendulum 1')
 title('Theta(t)')
 xlabel('time')
 ylabel('theta')
 
+figure(2)
+clf
 plot3(traj(:,1),traj(:,3),traj(:,4))
 legend('Pendulum 1')
 title('X(t),Y(t)')
